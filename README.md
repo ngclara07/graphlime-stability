@@ -30,27 +30,27 @@ The completed experimental pipeline is frozen. Subsequent repository changes are
 
 Let
 
-- \(f(v)\) denote the baseline prediction for target node \(v\);
-- \(f_r(v)\) denote its prediction after perturbation at masking rate \(r\);
-- \(E_0(v)\) denote the baseline GraphLIME top-\(K\) explanation;
-- \(E_r(v)\) denote the corresponding perturbed explanation.
+- $f(v)$ denote the baseline prediction for target node $v$;
+- $f_r(v)$ denote its prediction after perturbation at masking rate $r$;
+- $E_0(v)$ denote the baseline GraphLIME top-$K$ explanation;
+- $E_r(v)$ denote the corresponding perturbed explanation.
 
 The central phenomenon of interest is
 
-\[
+$$
 f(v) = f_r(v)
 \quad\text{while}\quad
 E_0(v) \neq E_r(v).
-\]
+$$
 
-The primary explanation-stability metric is top-\(K\) Jaccard similarity:
+The primary explanation-stability metric is top-$K$ Jaccard similarity:
 
-\[
+$$
 J(E_0,E_r)
 =
 \frac{|E_0 \cap E_r|}
 {|E_0 \cup E_r|}.
-\]
+$$
 
 The primary analysis also evaluates explanation stability conditional on the predicted class remaining unchanged.
 
@@ -122,7 +122,7 @@ For each target node, the implementation:
 
 The implemented objective is
 
-\[
+$$
 \min_{\beta \geq 0}
 \frac{1}{2}
 \left\|
@@ -132,15 +132,15 @@ The implemented objective is
 \right\|_F^2
 +
 \rho \|\beta\|_1.
-\]
+$$
 
 The implementation uses non-negative proximal-gradient optimization with a step size derived from the spectral norm of the flattened kernel design matrix.
 
 The regularization parameter was calibrated before the perturbation study and frozen at
 
-\[
+$$
 \rho = 0.03.
-\]
+$$
 
 The implementation optimizes the GraphLIME/HSIC-Lasso objective used in this study; it should not be interpreted as an exact reproduction of every optimization detail of the original GraphLIME implementation.
 
@@ -158,21 +158,17 @@ with 10 perturbation seeds per rate.
 
 The number of entries masked is
 
-\[
+$$
 n_{\mathrm{mask}}
 =
-\min
-\left(
+\min\left(
 n_{\mathrm{active}},
-\max
-\left(
+\max\left(
 1,
-\left\lfloor
-r n_{\mathrm{active}} + 0.5
-\right\rfloor
+\left\lfloor r n_{\mathrm{active}} + 0.5 \right\rfloor
 \right)
 \right).
-\]
+$$
 
 Each observation starts from the original feature matrix. Masks are sampled independently across rates rather than constructed as nested perturbations.
 
@@ -192,9 +188,9 @@ The complete perturbation protocol is documented in `research/perturbation_proto
 
 The frozen perturbation study contains
 
-\[
+$$
 97 \times 4 \times 10 = 3880
-\]
+$$
 
 node-rate-seed observations.
 
