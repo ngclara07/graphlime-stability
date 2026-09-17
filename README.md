@@ -37,20 +37,20 @@ Let
 
 The central phenomenon of interest is
 
-$$
+```math
 f(v) = f_r(v)
 \quad\text{while}\quad
 E_0(v) \neq E_r(v).
-$$
+```
 
 The primary explanation-stability metric is top-$K$ Jaccard similarity:
 
-$$
+```math
 J(E_0,E_r)
 =
 \frac{|E_0 \cap E_r|}
 {|E_0 \cup E_r|}.
-$$
+```
 
 The primary analysis also evaluates explanation stability conditional on the predicted class remaining unchanged.
 
@@ -122,7 +122,7 @@ For each target node, the implementation:
 
 The implemented objective is
 
-$$
+```math
 \min_{\beta \geq 0}
 \frac{1}{2}
 \left\|
@@ -132,15 +132,15 @@ $$
 \right\|_F^2
 +
 \rho \|\beta\|_1.
-$$
+```
 
 The implementation uses non-negative proximal-gradient optimization with a step size derived from the spectral norm of the flattened kernel design matrix.
 
 The regularization parameter was calibrated before the perturbation study and frozen at
 
-$$
+```math
 \rho = 0.03.
-$$
+```
 
 The implementation optimizes the GraphLIME/HSIC-Lasso objective used in this study; it should not be interpreted as an exact reproduction of every optimization detail of the original GraphLIME implementation.
 
@@ -158,7 +158,7 @@ with 10 perturbation seeds per rate.
 
 The number of entries masked is
 
-$$
+```math
 n_{\mathrm{mask}}
 =
 \min\left(
@@ -168,9 +168,9 @@ n_{\mathrm{active}},
 \left\lfloor r n_{\mathrm{active}} + 0.5 \right\rfloor
 \right)
 \right).
-$$
+```
 
-Each observation starts from the original feature matrix. Masks are sampled independently across rates rather than constructed as nested perturbations.
+Each observation starts from the original feature matrix. Masks are sampled separately across rates rather than constructed as nested perturbations.
 
 The experiment does **not**:
 
@@ -188,9 +188,9 @@ The complete perturbation protocol is documented in `research/perturbation_proto
 
 The frozen perturbation study contains
 
-$$
+```math
 97 \times 4 \times 10 = 3880
-$$
+```
 
 node-rate-seed observations.
 
@@ -282,10 +282,13 @@ graphlime_stability/
 |   `-- 05_plot_stability.py
 |
 |-- src/
+|   |-- __init__.py
 |   |-- data.py
-|   |-- model.py
 |   |-- explain.py
+|   |-- metrics.py
+|   |-- model.py
 |   |-- perturb.py
+|   |-- train.py
 |   `-- utils.py
 |
 |-- research/
