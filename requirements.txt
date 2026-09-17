@@ -1,0 +1,11 @@
+# Core dependencies for the GraphLIME stability experiment.
+#
+# The complete package snapshot of the original experimental environment is
+# preserved in requirements-frozen.txt.
+
+numpy==2.5.3
+pandas==3.0.5
+matplotlib==3.11.2
+torch==2.14.0
+torch-geometric==2.8.0.post1
+PyYAML==6.0.3

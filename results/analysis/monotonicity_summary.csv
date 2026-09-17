@@ -1,0 +1,5 @@
+outcome,total_nodes,complete_nodes,incomplete_nodes,strictly_decreasing_nodes,nonincreasing_with_ties_nodes,constant_nodes,strictly_increasing_nodes,nondecreasing_with_ties_nodes,nonmonotonic_nodes,monotonic_nonincreasing_nodes,monotonic_nondecreasing_nodes,fraction_monotonic_nonincreasing,fraction_strictly_decreasing,mean_endpoint_difference_0_20_minus_0_01,median_endpoint_difference_0_20_minus_0_01
+mean_jaccard,97,96,1,90,0,0,0,0,6,90,0,0.9375,0.9375,-0.44745590523208273,-0.4439893439893439
+mean_jaccard_pred_same,97,96,1,89,0,0,0,0,7,89,0,0.9270833333333334,0.9270833333333334,-0.4454120953581971,-0.44343156843156856
+prediction_stability,97,97,0,3,6,83,0,0,5,92,83,0.9484536082474226,0.030927835051546393,-0.03814432989690722,0.0
+explanation_availability,97,97,0,0,3,90,0,0,4,93,90,0.9587628865979382,0.0,-0.002061855670103091,0.0

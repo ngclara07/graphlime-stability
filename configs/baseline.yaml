@@ -1,0 +1,651 @@
+# =============================================================================
+# Frozen Experimental Configuration
+# =============================================================================
+#
+# Project:
+#   GraphLIME Explanation Stability under Controlled Local Feature Masking
+#
+# Purpose:
+#   Declarative provenance record of the configuration used by the completed
+#   and frozen experimental pipeline.
+#
+# IMPORTANT:
+#   This file was finalized after completion of the experiment by auditing the
+#   experiment scripts and source modules against the frozen experimental
+#   record. It documents the configuration; it was not the runtime
+#   configuration source used to generate the frozen results.
+#
+#   The validated source code, frozen model checkpoint, raw result artifacts,
+#   analysis artifacts, and experiment log remain the authoritative record of
+#   the completed experiment.
+#
+#   The completed Phase 0-11 experiment must not be retrospectively rerun with
+#   changed parameters and presented as the same frozen experiment.
+#
+# =============================================================================
+
+
+project:
+  name: graphlime_stability
+  study: "Stability of Local Feature Explanations for Graph Neural Networks under Controlled Perturbations"
+  status: frozen
+  configuration_role: post_hoc_provenance_record
+
+
+# =============================================================================
+# Dataset
+# =============================================================================
+
+dataset:
+  name: Cora
+
+  loader:
+    library: torch_geometric
+    dataset_class: Planetoid
+
+  observed_dimensions:
+    num_nodes: 2708
+    num_edges: 10556
+    num_features: 1433
+    num_classes: 7
+
+  split:
+    type: standard_planetoid
+    train_nodes: 140
+    validation_nodes: 500
+    test_nodes: 1000
+
+  preprocessing:
+    transform: NormalizeFeatures
+    normalize_features: true
+
+
+# =============================================================================
+# Baseline GCN
+# =============================================================================
+
+model:
+  architecture: GCN
+  num_layers: 2
+  convolution: GCNConv
+
+  input_features: 1433
+  hidden_channels: 16
+  output_classes: 7
+
+  activation: ReLU
+  dropout: 0.5
+
+  output:
+    type: logits
+    softmax_inside_model: false
+
+
+# =============================================================================
+# Baseline Training
+# =============================================================================
+
+training:
+  seed: 42
+  max_epochs: 200
+
+  optimizer:
+    name: Adam
+    learning_rate: 0.01
+    weight_decay: 0.0005
+
+  loss:
+    name: cross_entropy
+
+  execution:
+    device: cpu
+
+  model_selection:
+    metric: validation_accuracy
+    mode: max
+    evaluate_every_epoch: true
+    update_rule: strict_improvement
+    tie_break: earliest_epoch
+    test_set_used_for_selection: false
+
+  observed_frozen_result:
+    best_epoch: 125
+    train_accuracy: 0.9929
+    validation_accuracy: 0.7840
+    test_accuracy: 0.8060
+
+
+# =============================================================================
+# Reproducibility
+# =============================================================================
+
+reproducibility:
+  global_seed: 42
+
+  seeded_libraries:
+    python_random: true
+    numpy: true
+    pytorch_cpu: true
+    pytorch_cuda_if_available: true
+
+  deterministic_algorithm_enforcement: false
+
+  note: >
+    Random-number generators are explicitly seeded. The source code does not
+    globally enable PyTorch deterministic-algorithm enforcement, so this record
+    should not be interpreted as guaranteeing bitwise-identical execution on
+    every hardware/software platform.
+
+
+# =============================================================================
+# Target-Node Selection
+# =============================================================================
+
+target_nodes:
+  source_split: test
+
+  eligibility:
+    correctly_classified_by_frozen_model: true
+
+  sampling:
+    method: seeded_random_permutation_without_replacement
+    seed: 42
+    generator_device: cpu
+
+  planned_selected_count: 100
+
+  observed:
+    selected_count: 100
+    baseline_explainable_count: 97
+    baseline_output_degenerate_count: 3
+
+    output_degenerate_nodes:
+      - 2697
+      - 2625
+      - 2411
+
+  replacement_of_failed_nodes: false
+
+
+# =============================================================================
+# GraphLIME Local Explanation
+# =============================================================================
+
+graphlime:
+  neighborhood:
+    method: k_hop_subgraph
+    num_hops: 2
+    relabel_nodes: true
+
+  model_output_representation:
+    type: full_class_probability_vector
+    transformation: softmax
+    use_predicted_class_only: false
+
+  explanation:
+    top_k: 10
+
+    coefficient_selection:
+      minimum_exclusive_threshold: 1.0e-8
+      primary_order: coefficient_descending
+      tie_break: feature_index_ascending
+
+  kernels:
+    type: gaussian_rbf
+
+    formula: "exp(-squared_euclidean_distance / (2 * sigma^2))"
+
+    distance:
+      type: euclidean
+
+    bandwidth:
+      method: median_positive_pairwise_euclidean_distance
+      positive_distance_tolerance: 1.0e-12
+
+    centering:
+      enabled: true
+      method: double_centering
+      formula: "H K H"
+
+    normalization:
+      enabled: true
+      method: frobenius
+
+    degenerate_local_features:
+      exclude_from_active_kernel_set: true
+
+    degenerate_output_kernel:
+      explanation_unavailable: true
+      fabricate_bandwidth: false
+
+
+# =============================================================================
+# HSIC-Lasso
+# =============================================================================
+
+hsic_lasso:
+  objective:
+    form: "0.5 * ||y - X beta||_2^2 + rho * ||beta||_1"
+    kernel_equivalent: >
+      0.5 * ||L_bar - sum_k beta_k K_bar_k||_F^2
+      + rho * ||beta||_1
+
+  coefficient_constraint:
+    non_negative: true
+
+  rho: 0.03
+
+  solver:
+    method: nonnegative_proximal_gradient
+
+    initialization:
+      beta: zero
+
+    smooth_gradient:
+      form: "X^T (X beta - y)"
+
+    lipschitz_constant:
+      formula: "||X||_2^2"
+
+    step_size:
+      formula: "1 / ||X||_2^2"
+
+    proximal_operator:
+      type: nonnegative_soft_threshold
+      formula: "max(0, value - step_size * rho)"
+
+    max_iterations: 10000
+
+    convergence:
+      criterion: relative_coefficient_change
+      tolerance: 1.0e-8
+
+    zero_coefficient_tolerance: 1.0e-8
+
+  validation:
+    kkt_tolerance: 1.0e-4
+
+  implementation_note: >
+    The implementation optimizes the stated non-negative HSIC-Lasso objective
+    using proximal-gradient updates. This records the implemented optimization
+    procedure and does not claim exact reproduction of a different optimizer
+    used by the original GraphLIME publication.
+
+
+# =============================================================================
+# Rho Calibration
+# =============================================================================
+
+rho_calibration:
+  enabled: true
+
+  calibration_subset:
+    source: first_10_nodes_from_frozen_selected_node_order
+    num_nodes: 10
+    new_random_sampling: false
+
+    node_ids:
+      - 1903
+      - 1749
+      - 1726
+      - 2499
+      - 2075
+      - 1971
+      - 1965
+      - 2002
+      - 2691
+      - 2685
+
+  candidate_values:
+    - 0.001
+    - 0.003
+    - 0.010
+    - 0.030
+    - 0.100
+    - 0.300
+
+  selection_rule:
+    require_all_nodes_converged: true
+    require_complete_top_k_for_all_nodes: true
+    choose_largest_eligible_rho: true
+
+  observed_selected_rho: 0.03
+
+  use_future_stability_results_for_selection: false
+  retune_after_calibration: false
+
+
+# =============================================================================
+# Controlled Feature Perturbation
+# =============================================================================
+
+perturbation:
+  type: local_active_entry_feature_masking
+
+  scope:
+    local_neighborhood_only: true
+    active_nonzero_entries_only: true
+
+  nominal_mask_rates:
+    - 0.01
+    - 0.05
+    - 0.10
+    - 0.20
+
+  perturbation_seeds:
+    - 101
+    - 102
+    - 103
+    - 104
+    - 105
+    - 106
+    - 107
+    - 108
+    - 109
+    - 110
+
+  num_seeds_per_rate: 10
+
+  sampling:
+    generator: torch.Generator
+    generator_device: cpu
+
+    derived_seed:
+      formula: >
+        (perturbation_seed * 1000003
+        + node_id * 10007
+        + rate_index * 101)
+        mod (2^63 - 1)
+
+    independent_across_rates: true
+    nested_masks: false
+
+  masking:
+    mask_count_rule: >
+      min(num_active_entries,
+      max(1, floor(rate * num_active_entries + 0.5)))
+
+    intervention_value: 0.0
+
+  feature_processing:
+    post_mask_normalization: false
+
+  graph_structure:
+    perturb: false
+
+  model:
+    retrain_after_perturbation: false
+    frozen_checkpoint: true
+
+  starting_state:
+    reset_to_original_features_for_each_observation: true
+
+
+# =============================================================================
+# Experimental Grid
+# =============================================================================
+
+experiment:
+  primary_explanation_cohort_nodes: 97
+  num_mask_rates: 4
+  num_perturbation_seeds: 10
+
+  observations_per_node: 40
+  observations_per_rate: 970
+  total_observations: 3880
+
+  expected_complete_cartesian_grid: true
+
+  observed:
+    completed_observations: 3880
+    available_explanations: 3821
+    unavailable_explanations: 59
+
+    unavailable_reasons:
+      fewer_than_top_k_nonzero: 35
+      optimizer_nonconvergence: 24
+
+
+# =============================================================================
+# Stability Metrics
+# =============================================================================
+
+metrics:
+  explanation_stability:
+    metric: top_k_jaccard
+    top_k: 10
+
+    formula: >
+      |baseline_top_k intersection perturbed_top_k|
+      / |baseline_top_k union perturbed_top_k|
+
+  prediction_stability:
+    metric: predicted_class_agreement
+
+  prediction_conditioned_explanation_stability:
+    condition: predicted_class_unchanged
+    metric: top_k_jaccard
+
+  explanation_availability:
+    metric: valid_complete_top_k_explanation
+
+  confidence:
+    record_absolute_confidence_delta: true
+
+  missing_explanation_policy:
+    jaccard: null
+    intersection_size: null
+    union_size: null
+    assign_zero_jaccard: false
+    analyze_availability_separately: true
+
+
+# =============================================================================
+# Statistical Analysis
+# =============================================================================
+
+analysis:
+  primary_statistical_unit: target_node
+
+  repeated_observation_unit:
+    variable: perturbation_seed
+    within: node_rate
+
+  paired_across_mask_rates: true
+
+  bootstrap:
+    enabled: true
+    resampling_unit: target_node
+    paired: true
+    statistic: mean_paired_difference
+    confidence_level: 0.95
+    interval_method: percentile
+    num_resamples: 10000
+    seed: 20260917
+
+  wilcoxon:
+    enabled: true
+    sidedness: two_sided
+    implementation: local_numpy_python
+    approximation: tie_corrected_normal
+    continuity_correction: false
+
+  multiple_comparisons:
+    method: holm
+    scope: six_contrasts_within_outcome_family
+
+  effect_size:
+    method: matched_pairs_rank_biserial
+
+  monotonicity:
+    evaluated_at_node_level: true
+
+  h4_correlation:
+    endpoint_low_rate: 0.01
+    endpoint_high_rate: 0.20
+    pearson: true
+    spearman: true
+    inferential_p_value: false
+    interpretation: descriptive
+
+  graph_dependence:
+    single_graph: true
+    acknowledge_node_dependence: true
+
+
+# =============================================================================
+# Frozen Observed Endpoint Results
+# =============================================================================
+#
+# These are observed results, not configuration parameters. They are included
+# only to make this frozen provenance record self-describing.
+# =============================================================================
+
+observed_results:
+  rate_summary:
+
+    - nominal_mask_rate: 0.01
+      prediction_stability: 0.9969
+      explanation_availability: 0.9876
+      mean_jaccard: 0.9015
+      mean_jaccard_prediction_unchanged: 0.9014
+
+    - nominal_mask_rate: 0.05
+      prediction_stability: 0.9876
+      explanation_availability: 0.9835
+      mean_jaccard: 0.7253
+      mean_jaccard_prediction_unchanged: 0.7266
+
+    - nominal_mask_rate: 0.10
+      prediction_stability: 0.9835
+      explanation_availability: 0.9825
+      mean_jaccard: 0.6045
+      mean_jaccard_prediction_unchanged: 0.6063
+
+    - nominal_mask_rate: 0.20
+      prediction_stability: 0.9588
+      explanation_availability: 0.9856
+      mean_jaccard: 0.4541
+      mean_jaccard_prediction_unchanged: 0.4560
+
+  h4_endpoint:
+    valid_nodes: 97
+    mean_prediction_stability_change: -0.0381
+    mean_explanation_stability_change: -0.4475
+    spearman_rho: -0.0271
+    pearson_r: 0.0927
+
+    unchanged_prediction_stability_and_decreased_explanation:
+      count: 86
+      total: 97
+      proportion: 0.8866
+
+  h5_unavailable_explanations:
+
+    - nominal_mask_rate: 0.01
+      unavailable: 12
+      total: 970
+
+    - nominal_mask_rate: 0.05
+      unavailable: 16
+      total: 970
+
+    - nominal_mask_rate: 0.10
+      unavailable: 17
+      total: 970
+
+    - nominal_mask_rate: 0.20
+      unavailable: 14
+      total: 970
+
+
+# =============================================================================
+# Frozen Artifact Paths
+# =============================================================================
+
+artifacts:
+
+  model:
+    checkpoint: models/cora_gcn_seed42.pt
+
+  baseline:
+    selected_nodes: results/baseline/selected_nodes.csv
+    rho_calibration: results/baseline/rho_calibration.csv
+    rho_calibration_summary: results/baseline/rho_calibration_summary.csv
+    explanations: results/baseline/explanations.csv
+    explanation_diagnostics: results/baseline/explanation_diagnostics.csv
+    kkt_validation: results/baseline/kkt_validation.csv
+
+  perturbations:
+    raw_results: results/perturbations/feature_mask.csv
+    validation: results/perturbations/feature_mask_validation.csv
+    validation_summary: results/perturbations/feature_mask_validation_summary.csv
+
+  analysis:
+    rate_summary: results/analysis/rate_summary.csv
+    node_rate_summary: results/analysis/node_rate_summary.csv
+    prediction_conditioned_summary: results/analysis/prediction_conditioned_summary.csv
+    explanation_availability_summary: results/analysis/explanation_availability_summary.csv
+    failure_summary: results/analysis/failure_summary.csv
+    paired_rate_contrasts: results/analysis/paired_rate_contrasts.csv
+    monotonicity_summary: results/analysis/monotonicity_summary.csv
+    final_hypothesis_summary: results/analysis/final_hypothesis_summary.csv
+    h4_coupling_summary: results/analysis/h4_coupling_summary.csv
+    h4_node_endpoint_changes: results/analysis/h4_node_endpoint_changes.csv
+    h5_availability_by_rate: results/analysis/h5_availability_by_rate.csv
+
+  figures:
+    main_stability:
+      png: results/figures/figure_01_main_stability.png
+      pdf: results/figures/figure_01_main_stability.pdf
+
+    prediction_vs_explanation:
+      png: results/figures/figure_02_prediction_vs_explanation.png
+      pdf: results/figures/figure_02_prediction_vs_explanation.pdf
+
+    h4_endpoint_coupling:
+      png: results/figures/figure_03_h4_endpoint_coupling.png
+      pdf: results/figures/figure_03_h4_endpoint_coupling.pdf
+
+    explanation_unavailability:
+      png: results/figures/figure_04_explanation_unavailability.png
+      pdf: results/figures/figure_04_explanation_unavailability.pdf
+
+
+# =============================================================================
+# Superseded Intermediate Artifact
+# =============================================================================
+
+superseded_artifacts:
+  hypothesis_summary:
+    path: results/analysis/hypothesis_summary.csv
+    status: superseded_intermediate
+    superseded_by: results/analysis/final_hypothesis_summary.csv
+    retain_for_provenance: true
+
+
+# =============================================================================
+# Freeze Policy
+# =============================================================================
+
+freeze_policy:
+  canonical_pipeline:
+    phase_0_to_11_complete: true
+
+  model_frozen: true
+  target_nodes_frozen: true
+  graphlime_configuration_frozen: true
+  rho_frozen: true
+  perturbation_configuration_frozen: true
+  raw_perturbation_results_frozen: true
+  statistical_analysis_frozen: true
+  figures_frozen: true
+
+  allow_post_hoc_parameter_tuning: false
+  allow_failed_node_replacement: false
+  allow_manual_result_modification: false
+  allow_unavailable_explanation_as_zero_jaccard: false
+
+  future_extensions:
+    require_new_experiment: true
+    preserve_current_frozen_artifacts: true

@@ -1,0 +1,11 @@
+nominal_mask_rate,failure_reason,failure_count,rate_total_observations,failure_fraction_of_rate,failure_fraction_among_unavailable,unique_nodes_affected
+0.01,fewer_than_top_k_nonzero,9,970,0.009278350515463918,0.75,1
+0.01,optimizer_nonconvergence,3,970,0.003092783505154639,0.25,1
+0.05,fewer_than_top_k_nonzero,10,970,0.010309278350515464,0.625,1
+0.05,optimizer_nonconvergence,6,970,0.006185567010309278,0.375,2
+0.1,optimizer_nonconvergence,10,970,0.010309278350515464,0.5882352941176471,3
+0.1,fewer_than_top_k_nonzero,7,970,0.007216494845360825,0.4117647058823529,1
+0.2,fewer_than_top_k_nonzero,9,970,0.009278350515463918,0.6428571428571429,3
+0.2,optimizer_nonconvergence,5,970,0.005154639175257732,0.35714285714285715,4
+ALL,fewer_than_top_k_nonzero,35,3880,0.00902061855670103,0.5932203389830508,3
+ALL,optimizer_nonconvergence,24,3880,0.006185567010309278,0.4067796610169492,6

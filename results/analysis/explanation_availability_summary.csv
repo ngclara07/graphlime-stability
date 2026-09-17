@@ -1,0 +1,5 @@
+nominal_mask_rate,num_nodes,num_raw_observations,num_available,num_unavailable,raw_availability_rate,mean_node_availability,mean_node_availability_ci_low,mean_node_availability_ci_high,availability_contributing_nodes,nodes_with_all_explanations_available,nodes_with_any_unavailable_explanation,fewer_than_top_k_nonzero,optimizer_nonconvergence
+0.01,97,970,958,12,0.9876288659793815,0.9876288659793816,0.9659793814432989,1.0,97,95,2,9,3
+0.05,97,970,954,16,0.9835051546391752,0.9835051546391753,0.9577319587628866,1.0,97,94,3,10,6
+0.1,97,970,953,17,0.9824742268041237,0.9824742268041237,0.9567010309278352,1.0,97,94,3,7,10
+0.2,97,970,956,14,0.9855670103092784,0.9855670103092783,0.965979381443299,0.9979381443298969,97,91,6,9,5

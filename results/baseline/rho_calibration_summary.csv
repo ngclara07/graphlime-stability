@@ -1,0 +1,7 @@
+rho,num_runs,num_converged,num_full_top_k,min_nonzero,mean_nonzero,median_nonzero,max_nonzero,mean_iterations,max_iterations,all_converged,all_have_top_k,eligible,recommended_candidate
+0.001,10,10,10,31,132.9,97.0,293,727.4,1867,True,True,True,False
+0.003,10,10,10,31,123.7,97.0,252,719.0,1827,True,True,True,False
+0.01,10,9,10,31,92.1,92.5,143,1615.3,10000,False,True,False,False
+0.03,10,10,10,16,51.7,48.5,102,504.7,1486,True,True,True,True
+0.1,10,10,7,2,22.6,23.0,43,368.0,1416,True,False,False,False
+0.3,10,10,4,0,6.6,3.0,21,349.6,1609,True,False,False,False
