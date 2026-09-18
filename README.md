@@ -2,6 +2,16 @@
 
 An independent research study investigating the stability of local GraphLIME feature explanations for a frozen Graph Convolutional Network (GCN) under controlled feature perturbations on the Cora citation network.
 
+## Research Report
+
+The complete independent research study is available as a PDF:
+
+**[Stability of Local Feature Explanations for Graph Neural Networks under Controlled Perturbations](./GraphLIME_Stability_Research_Report.pdf)**
+
+The report presents the research motivation, related work, methodology, experimental results, statistical analysis, discussion, limitations, and supplementary experimental details for this repository.
+
+---
+
 ## Overview
 
 Post-hoc explanations are often interpreted as descriptions of why a trained model produced a prediction. However, prediction stability does not necessarily imply explanation stability.
@@ -306,6 +316,7 @@ graphlime_stability/
 |   |-- analysis/
 |   `-- figures/
 |
+|-- GraphLIME_Stability_Research_Report.pdf
 |-- README.md
 |-- requirements.txt
 |-- requirements-frozen.txt
@@ -399,4 +410,6 @@ Future extensions should be recorded as separate experiments while preserving th
 
 **Experimental pipeline: complete, validated, analyzed, visualized, and frozen.**
 
-The current repository stage is research documentation, reproducibility packaging, literature positioning, and manuscript preparation.
+**Independent research report: complete and available in this repository.**
+
+The study artifacts, frozen experimental results, statistical analyses, figures, research documentation, and final research report are retained in this repository for reproducibility and independent inspection.
