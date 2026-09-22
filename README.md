@@ -6,7 +6,7 @@ An independent research study investigating the stability of local GraphLIME fea
 
 The complete independent research study is available as a PDF:
 
-**[Stability of Local Feature Explanations for Graph Neural Networks under Controlled Perturbations](./GraphLIME_Explanation_Stability_Research_Study.pdf)**
+**[Stability of Local Feature Explanations for Graph Neural Networks under Controlled Perturbations](./paper/GraphLIME_Explanation_Stability_Research_Report.pdf)**
 
 The report presents the research motivation, related work, methodology, experimental results, statistical analysis, discussion, limitations, and supplementary experimental details for this repository.
 
